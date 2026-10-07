@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DispatchFlow | Operations Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="page-shell">
+    <section id="loginView" class="auth-shell">
+      <div class="auth-panel">
+        <p class="eyebrow">Urban Retail</p>
+        <h1>Role-based dispatch workflow for Sales, Ops, FC and Admin teams.</h1>
+        <p class="hero-copy">
+          Sales creates appointments, Ops adds picklist details, FC completes dispatch by allowed location,
+          and Admin manages users and access.
+        </p>
+
+        <form id="loginForm" class="form-grid auth-form">
+          <label>
+            Email
+            <input type="email" id="username" placeholder="name@company.com" required>
+          </label>
+          <label>
+            Password
+            <input type="password" id="password" placeholder="Enter password" required>
+          </label>
+          <button type="submit" class="primary-btn">Login</button>
+          <button id="resetPasswordButton" type="button" class="ghost-btn">Reset Password</button>
+          <p id="loginMessage" class="form-note"></p>
+        </form>
+
+        <div class="reset-box">
+          <button id="resetDataButton" type="button" class="ghost-btn">Clear Session</button>
+          <p class="form-note">Signs out and clears the local browser session for this shared app.</p>
+        </div>
+      </div>
+    </section>
+
+    <div id="appView" class="app-shell app-hidden">
+      <aside class="sidebar" id="dispatchSidebar">
+        <div class="brand">
+          <span class="logo-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11l3 4h4v6H3z"/><path d="M7 17a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm10 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"/><path d="M3 12h18"/></svg>
+          </span>
+          <span><strong>Dispatch<span>Flow</span></strong><small>OPERATIONS MANAGEMENT</small></span>
+        </div>
+
+        <nav class="primary-nav" aria-label="Dispatch workspace navigation">
+          <button class="dispatch-nav-item active" type="button" data-dispatch-page="dashboard"><span class="nav-icon">⌂</span><span>Overview</span></button>
+          <button class="dispatch-nav-item" type="button" data-dispatch-page="sales"><span class="nav-icon">＋</span><span>Order entry</span></button>
+          <button class="dispatch-nav-item" type="button" data-dispatch-page="ops"><span class="nav-icon">☷</span><span>Picklists</span></button>
+          <button class="dispatch-nav-item" type="button" data-dispatch-page="fc"><span class="nav-icon">↗</span><span>Dispatch</span></button>
+          <button class="dispatch-nav-item" type="button" data-dispatch-page="board"><span class="nav-icon">▤</span><span>Live board</span></button>
+        </nav>
+
+        <div class="sidebar-foot">
+          <div class="help-card"><span class="help-icon">?</span><span><b>Need help?</b><small>Contact operations support</small></span></div>
+          <button class="dispatch-nav-item settings-nav" type="button" data-dispatch-page="admin"><span class="nav-icon">⚙</span><span>Settings</span></button>
+          <div class="profile-mini"><span id="sidebarAvatar" class="avatar avatar-sm">DF</span><span><b id="sidebarProfileName">Dispatch user</b><small id="sidebarProfileRole">Operations workspace</small></span></div>
+        </div>
+      </aside>
+
+      <div class="main-content">
+        <header class="topbar">
+          <button id="menuToggle" class="menu-toggle" type="button" aria-label="Toggle navigation">☰</button>
+          <div class="mobile-brand">Dispatch<span>Flow</span></div>
+          <div class="topbar-context"><span class="context-dot"></span><span id="topbarDate">Operations workspace</span></div>
+          <div class="topbar-actions">
+            <div class="top-profile"><span id="topbarAvatar" class="avatar">DF</span><span><b id="topbarUserName">Dispatch user</b><small id="topbarUserRole">Operations workspace</small></span></div>
+            <button id="topbarLogoutButton" type="button" class="topbar-logout">Sign out</button>
+          </div>
+        </header>
+
+      <header id="dispatchHero" class="hero">
+        <div>
+          <p class="eyebrow">Urban Retail</p>
+          <h1>Track every order from appointment to final dispatch.</h1>
+          <p class="hero-copy" id="roleDescription"></p>
+          <div class="hero-meta">
+            <div class="hero-userline">
+              <strong id="currentUserName"></strong>
+              <span id="currentUserRole"></span>
+              <span id="currentUserAccess" class="user-access"></span>
+            </div>
+            <button id="logoutButton" type="button" class="ghost-btn">Logout</button>
+          </div>
+        </div>
+        <div class="hero-card">
+          <div class="metric">
+            <span id="totalOrders">0</span>
+            <small>Total Orders</small>
+          </div>
+          <div class="metric">
+            <span id="readyOrders">0</span>
+            <small>Dispatched Orders</small>
+          </div>
+        </div>
+      </header>
+
+      <main class="layout">
+        <section id="dashboardPanel" class="panel wide-panel">
+          <div class="panel-head split-head">
+            <div>
+              <p class="section-tag">Dashboard</p>
+              <h2>Operations Snapshot</h2>
+            </div>
+            <div class="button-row utility-row">
+              <button id="resetDashboardFiltersButton" type="button" class="ghost-btn">Reset Dashboard Filters</button>
+              <button id="exportPendingPicklistReportButton" type="button" class="ghost-btn">Export Pending Picklist</button>
+              <button id="exportPendingDispatchReportButton" type="button" class="ghost-btn">Export Pending Dispatch</button>
+              <button id="exportDispatchedTodayReportButton" type="button" class="ghost-btn">Export Dispatched Today</button>
+            </div>
+          </div>
+          <div id="dashboardStats" class="dashboard-grid"></div>
+          <div class="dashboard-detail-grid">
+            <section class="workspace-card soft-card compact-table">
+              <div class="mini-head">
+                <div>
+                  <p class="section-tag">By Location</p>
+                  <h3>Location Summary</h3>
+                </div>
+                <label class="filter-box dashboard-filter-box">
+                  <span>Appointment Date</span>
+                  <select id="dashboardLocationAppointmentDate"></select>
+                </label>
+              </div>
+              <div class="table-wrap compact-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Location</th>
+                      <th>Total Orders</th>
+                      <th>Pending Picklist</th>
+                      <th>Pending Dispatch</th>
+                      <th>Dispatched</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dashboardByLocationBody">
+                    <tr class="empty-state-row">
+                      <td colspan="5">No dashboard data available.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <section class="workspace-card soft-card compact-table">
+              <div class="mini-head">
+                <div>
+                  <p class="section-tag">By Buyer</p>
+                  <h3>Buyer Summary</h3>
+                </div>
+                <label class="filter-box dashboard-filter-box">
+                  <span>Appointment Date</span>
+                  <select id="dashboardBuyerAppointmentDate"></select>
+                </label>
+              </div>
+              <div class="table-wrap compact-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Buyer</th>
+                      <th>Total Orders</th>
+                      <th>Pending Picklist</th>
+                      <th>Pending Dispatch</th>
+                      <th>Dispatched</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dashboardByBuyerBody">
+                    <tr class="empty-state-row">
+                      <td colspan="5">No dashboard data available.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+
+        </section>
+
+        <section id="adminPanel" class="panel wide-panel role-panel app-hidden">
+          <div class="panel-head split-head">
+            <div>
+              <p class="section-tag">Admin</p>
+              <h2>User Access</h2>
+            </div>
+          </div>
+          <p id="userFormMessage" class="form-note"></p>
+          <section class="workspace-card soft-card user-provision-card">
+            <div class="mini-head">
+              <div>
+                <p class="section-tag">User Provisioning</p>
+                <h3>Create a Dispatch user</h3>
+              </div>
+            </div>
+            <p class="form-note">Create a user with a temporary password, then share the credentials through your approved channel. FC locations only apply to the FC role.</p>
+            <form id="createUserForm" class="form-grid user-provision-form">
+              <label>
+                Full Name
+                <input type="text" id="newUserFullName" placeholder="Employee name" autocomplete="name" required>
+              </label>
+              <label>
+                Work Email
+                <input type="email" id="newUserEmail" placeholder="name@company.com" autocomplete="email" required>
+              </label>
+              <label>
+                Temporary Password
+                <input type="password" id="newUserPassword" placeholder="At least 12 characters" autocomplete="new-password" minlength="12" required>
+              </label>
+              <label>
+                Role
+                <select id="newUserRole" required>
+                  <option value="sales">Sales Team</option>
+                  <option value="ops">Ops Team</option>
+                  <option value="fc">FC Team</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </label>
+              <fieldset class="location-access-picker">
+                <legend>FC Location Access</legend>
+                <div id="newUserLocationChoices" class="checkbox-grid"></div>
+              </fieldset>
+              <div class="button-row utility-row">
+                <button type="submit" id="createUserButton" class="primary-btn">Create User</button>
+              </div>
+            </form>
+            <p id="createUserMessage" class="form-note" aria-live="polite"></p>
+          </section>
+          <div class="button-row utility-row">
+            <button id="deleteAllOrdersButton" type="button" class="danger-btn">Delete All Entries</button>
+            <button id="deleteDispatchedOrdersButton" type="button" class="danger-btn">Delete All Dispatched</button>
+            <button id="purgeDeletedOrdersButton" type="button" class="danger-btn">Permanently Delete Soft Deleted</button>
+          </div>
+          <div class="workspace-card soft-card admin-note-card">
+            <div class="mini-head">
+              <div>
+                <p class="section-tag">Phase Upgrade</p>
+                <h3>Supabase Migration</h3>
+              </div>
+            </div>
+            <p class="form-note">
+              Apply the migration in
+              <a href="supabase-phase-upgrades.sql" target="_blank" rel="noopener">supabase-phase-upgrades.sql</a>
+              for audit history, `updated_at` triggers, and stronger database-side protections.
+            </p>
+            <p class="form-note">
+              To enforce role-based field ownership directly in Supabase, also run
+              <a href="supabase-role-field-protection.sql" target="_blank" rel="noopener">supabase-role-field-protection.sql</a>.
+            </p>
+            <p class="form-note">
+              To share buyer, location, and order status lists across all users, also run
+              <a href="supabase-master-data.sql" target="_blank" rel="noopener">supabase-master-data.sql</a>.
+            </p>
+            <p class="form-note">
+              To add the FC Admin role in Supabase, also run
+              <a href="supabase-fc-admin-role.sql" target="_blank" rel="noopener">supabase-fc-admin-role.sql</a>.
+            </p>
+            <p class="form-note">
+              To enable scheduled email alerts, run
+              <a href="supabase-email-alerts.sql" target="_blank" rel="noopener">supabase-email-alerts.sql</a>
+              and deploy
+              <a href="supabase/functions/send-scheduled-alerts/index.ts" target="_blank" rel="noopener">send-scheduled-alerts</a>.
+            </p>
+            <p class="form-note">
+              To enable soft delete and restore, run
+              <a href="supabase-soft-delete.sql" target="_blank" rel="noopener">supabase-soft-delete.sql</a>.
+            </p>
+            <p class="form-note">
+              To improve query speed, run
+              <a href="supabase-performance-indexes.sql" target="_blank" rel="noopener">supabase-performance-indexes.sql</a>.
+            </p>
+            <p class="form-note">
+              To capture durable dispatch report data, run
+              <a href="supabase-dispatch-report.sql" target="_blank" rel="noopener">supabase-dispatch-report.sql</a>.
+            </p>
+          </div>
+          <section class="workspace-card soft-card master-data-card">
+            <div class="mini-head">
+              <div>
+                <p class="section-tag">Master Data</p>
+                <h3>Manage App Lists</h3>
+              </div>
+            </div>
+            <p class="form-note">These lists drive shared dropdowns for Sales, Ops, FC, dashboard filters, and exports.</p>
+            <div class="master-grid">
+              <div class="master-block">
+                <label>
+                  Buyer Code
+                  <input type="text" id="masterBuyerCodeInput" placeholder="e.g. 100001">
+                </label>
+                <label>
+                  Buyer Name
+                  <input type="text" id="masterBuyerInput" placeholder="Enter buyer name">
+                </label>
+                <div class="button-row utility-row">
+                  <button id="addBuyerButton" type="button" class="secondary-btn">Add Buyer</button>
+                </div>
+                <div id="masterBuyerList" class="chip-list"></div>
+              </div>
+              <div class="master-block">
+                <label>
+                  Add Location
+                  <input type="text" id="masterLocationInput" placeholder="Enter location">
+                </label>
+                <div class="button-row utility-row">
+                  <button id="addLocationButton" type="button" class="secondary-btn">Add Location</button>
+                </div>
+                <div id="masterLocationList" class="chip-list"></div>
+              </div>
+              <div class="master-block">
+                <label>
+                  Add Order Status
+                  <input type="text" id="masterOrderStatusInput" placeholder="Enter order status">
+                </label>
+                <div class="button-row utility-row">
+                  <button id="addOrderStatusButton" type="button" class="secondary-btn">Add Status</button>
+                </div>
+                <div id="masterOrderStatusList" class="chip-list"></div>
+              </div>
+            </div>
+            <p id="masterDataMessage" class="form-note"></p>
+          </section>
+          <section class="workspace-card soft-card master-data-card">
+            <div class="mini-head">
+              <div>
+                <p class="section-tag">Audit</p>
+                <h3>Order Change History</h3>
+              </div>
+            </div>
+            <div class="audit-filter-grid">
+              <label class="filter-box">
+                <span>Action</span>
+                <select id="auditActionFilter"></select>
+              </label>
+              <label class="filter-box">
+                <span>Changed Date</span>
+                <select id="auditDateFilter"></select>
+              </label>
+              <label class="filter-box">
+                <span>Search</span>
+                <input type="search" id="auditSearchInput" placeholder="Order number, user, buyer, order id">
+              </label>
+              <div class="button-row utility-row audit-button-row">
+                <button id="resetAuditFiltersButton" type="button" class="ghost-btn">Reset Audit Filters</button>
+              </div>
+            </div>
+            <div class="table-wrap compact-wrap">
+              <table class="audit-table">
+                <thead>
+                  <tr>
+                    <th>Changed At</th>
+                    <th>Action</th>
+                    <th>Order Number</th>
+                    <th>Changed By</th>
+                    <th>Summary</th>
+                    <th>Order ID</th>
+                  </tr>
+                </thead>
+                <tbody id="auditHistoryBody">
+                  <tr class="empty-state-row">
+                    <td colspan="6">Audit history will appear here for Admin.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p id="auditHistoryMessage" class="form-note"></p>
+          </section>
+        </section>
+
+        <section id="salesPanel" class="panel role-panel app-hidden">
+          <div class="panel-head">
+            <div>
+              <p class="section-tag">Sales Team</p>
+              <h2>Create Dispatch Order</h2>
+            </div>
+          </div>
+          <div class="workspace-stack">
+            <section class="workspace-card soft-card">
+              <div class="mini-head">
+                <div>
+                  <p class="section-tag">Utilities</p>
+                  <h3>Sales Tools</h3>
+                </div>
+              </div>
+              <p class="form-note">Sales can create orders and update only Sales fields.</p>
+              <div class="button-row utility-row">
+                <button id="downloadTemplateButton" type="button" class="ghost-btn">Download Template CSV</button>
+                <button id="exportSalesButton" type="button" class="ghost-btn">Export Sales CSV</button>
+                <button id="exportAllOrdersButton" type="button" class="ghost-btn">Export All Orders CSV</button>
+                <label class="file-upload">
+                  <span>Import Sales CSV</span>
+                  <input type="file" id="salesImportFile" accept=".csv">
+                </label>
+              </div>
+              <p id="salesUtilityMessage" class="form-note"></p>
+            </section>
+
+            <section class="workspace-card soft-card">
+              <div class="mini-head">
+                <div>
+                  <p class="section-tag">Edit Mode</p>
+                  <h3>Open Existing Order</h3>
+                </div>
+              </div>
+              <div class="form-grid sales-edit-grid">
+                <label>
+                  Edit Existing Order
+                  <input type="text" id="salesOrderSearch" list="salesOrderOptions" placeholder="Search by order number, buyer, or date">
+                  <datalist id="salesOrderOptions"></datalist>
+                </label>
+                <div class="button-row sales-edit-actions">
+                  <button id="loadSalesOrderButton" type="button" class="secondary-btn">Load Order</button>
+                  <button id="resetSalesFormButton" type="button" class="ghost-btn">New Order</button>
+                </div>
+              </div>
+              <p id="salesEditMessage" class="form-note"></p>
+            </section>
+
+          </div>
+
+          <section class="workspace-card form-card">
+            <div class="panel-head">
+              <div>
+                <p class="section-tag">Order Entry</p>
+                <h2>Sales Order Form</h2>
+              </div>
+            </div>
+            <form id="orderForm" class="form-grid sales-form-grid">
+              <label>
+                Appointment Date
+                <input type="date" id="appointmentDate" required>
+              </label>
+              <label>
+                Buyer Code
+                <select id="buyerCode" required></select>
+              </label>
+              <label>
+                Buyer Name
+                <input type="text" id="buyerName" readonly required>
+              </label>
+              <label>
+                Order Number
+                <input type="text" id="orderNumber" placeholder="ORD-1001" required>
+              </label>
+              <label>
+                Order Status
+                <select id="orderStatus" required>
+                  <option value="Confirmed">Confirmed</option>
+                  <option value="Part Allocated">Part Allocated</option>
+                  <option value="Allocated">Allocated</option>
+                </select>
+              </label>
+              <label>
+                Location
+                <select id="location" required></select>
+              </label>
+              <label>
+                Appointment ID
+                <input type="text" id="appointmentId" placeholder="APT-1001" required>
+              </label>
+              <label>
+                Max Qty
+                <input type="number" id="maxQty" min="0" placeholder="100" required>
+              </label>
+              <label>
+                Time Slot
+                <input type="time" id="timeSlot" required>
+              </label>
+              <label>
+                Status
+                <select id="status" required>
+                  <option value="Pending">Pending</option>
+                  <option value="Confirmed">Confirmed</option>
+                </select>
+              </label>
+              <label>
+                Picklist Number (Edit Only)
+                <input type="number" id="salesPicklistNumber" min="0" placeholder="Picklist number">
+              </label>
+              <div class="full-span form-actions">
+                <button type="submit" class="primary-btn">Save Order</button>
+              </div>
+            </form>
+          </section>
+        </section>
+
+        <section id="opsPanel" class="panel role-panel app-hidden">
+          <div class="panel-head">
+            <div>
+              <p class="section-tag">Ops Team</p>
+              <h2>Add Picklist</h2>
+            </div>
+          </div>
+          <section class="workspace-card form-card">
+            <div class="mini-head">
+              <div>
+                <p class="section-tag">Ops Flow</p>
+                <h3>Picklist Assignment</h3>
+              </div>
+            </div>
+            <p class="form-note">Ops can add or edit picklist number and picklist qty.</p>
+            <div class="button-row utility-row">
+              <button id="downloadOpsTemplateButton" type="button" class="ghost-btn">Download Ops Template</button>
+              <button id="exportOpsButton" type="button" class="ghost-btn">Export Ops CSV</button>
+            </div>
+            <p id="opsUtilityMessage" class="form-note"></p>
+            <form id="picklistForm" class="form-grid ops-form-grid">
+              <label>
+                Appointment Date
+                <select id="opsAppointmentDate" required></select>
+              </label>
+              <label>
+                Location
+                <select id="opsLocation" required></select>
+              </label>
+              <label>
+                Buyer Code
+                <select id="opsBuyerCode" required></select>
+              </label>
+              <label>
+                Select Order
+                <select id="picklistOrder" required></select>
+              </label>
+              <div class="full-span ops-copy-row">
+                <label>
+                  Selected Order
+                  <input type="text" id="selectedOpsOrderText" readonly placeholder="Choose an order to copy">
+                </label>
+                <button id="copyOpsOrderButton" type="button" class="ghost-btn">Copy Order</button>
+              </div>
+              <label>
+                <span class="field-head">
+                  <span>Picklist Number</span>
+                  <button id="toggleOpsEditModeButton" type="button" class="ghost-btn field-head-btn">Open Picklist Edit</button>
+                </span>
+                <input type="number" id="picklistNumber" min="0" placeholder="Picklist number" required>
+              </label>
+              <label>
+                Picklist Qty
+                <input type="number" id="picklistQty" min="0" placeholder="Picklist qty" required>
+              </label>
+              <div class="full-span form-actions">
+                <button type="submit" class="secondary-btn">Save Picklist</button>
+              </div>
+              <p id="opsEmptyMessage" class="form-note full-span"></p>
+            </form>
+          </section>
+        </section>
+
+        <section id="fcPanel" class="panel role-panel app-hidden">
+          <div class="panel-head">
+            <div>
+              <p class="section-tag">FC Team</p>
+              <h2>Complete Dispatch</h2>
+            </div>
+          </div>
+          <section class="workspace-card form-card">
+            <div class="mini-head">
+              <div>
+                <p class="section-tag">FC Flow</p>
+                <h3>Dispatch Completion</h3>
+              </div>
+            </div>
+            <p class="form-note">FC can update only vehicle number and dispatch status.</p>
+            <div class="button-row utility-row">
+              <button id="downloadFcTemplateButton" type="button" class="ghost-btn">Download FC Template</button>
+              <button id="exportFcButton" type="button" class="ghost-btn">Export FC CSV</button>
+              <button id="exportDispatchReportButton" type="button" class="ghost-btn">Export Dispatch Report CSV</button>
+            </div>
+            <p id="fcUtilityMessage" class="form-note"></p>
+            <form id="dispatchForm" class="form-grid fc-form-grid">
+              <label>
+                Appointment Date
+                <select id="fcAppointmentDate" required></select>
+              </label>
+              <label>
+                Buyer Code
+                <select id="fcBuyerCode" required></select>
+              </label>
+              <label>
+                Select Order
+                <select id="dispatchOrder" required></select>
+              </label>
+              <label>
+                Vehicle Number
+                <input type="text" id="vehicleNumber" placeholder="MH12AB1234" required>
+              </label>
+              <label>
+                Vehicle Type
+                <input type="text" id="vehicleType" placeholder="14 ft, 17 ft, EV, Bike" required>
+              </label>
+              <label>
+                Boxes
+                <input type="number" id="boxes" min="1" step="1" placeholder="Boxes count" required>
+              </label>
+              <label>
+                Dispatch Status
+                <select id="dispatchStatus" required>
+                  <option value="Pending">Pending</option>
+                  <option value="Dispatched">Dispatched</option>
+                </select>
+              </label>
+              <div class="full-span form-actions">
+                <button type="submit" class="accent-btn">Update Dispatch</button>
+              </div>
+            </form>
+          </section>
+        </section>
+
+        <section id="boardPanel" class="panel wide-panel">
+          <div class="panel-head split-head">
+            <div>
+              <p class="section-tag">Live Board</p>
+              <h2>Dispatch Overview</h2>
+            </div>
+            <div class="board-toolbar">
+              <div class="board-filters">
+                <label class="filter-box">
+                  <span>Appointment Date</span>
+                  <select id="boardAppointmentDate"></select>
+                </label>
+                <label class="filter-box">
+                  <span>Dispatch Status</span>
+                  <select id="boardDispatchStatus"></select>
+                </label>
+                <label class="filter-box">
+                  <span>Buyer Name</span>
+                  <select id="boardBuyerName"></select>
+                </label>
+                <label class="filter-box">
+                  <span>Buyer Code</span>
+                  <select id="boardBuyerCode"></select>
+                </label>
+                <label class="filter-box">
+                  <span>Location</span>
+                  <select id="boardLocation"></select>
+                </label>
+                <label class="filter-box inline-toggle">
+                  <span>Admin View</span>
+                  <input type="checkbox" id="boardShowDeleted">
+                  <small>Show deleted orders</small>
+                </label>
+              </div>
+              <div class="button-row utility-row">
+                <label class="filter-box inline-toggle">
+                  <span>Export Options</span>
+                  <input type="checkbox" id="exportIncludeDispatched" checked>
+                  <small>Include dispatched orders in CSV</small>
+                </label>
+                <label class="search-box">
+                  <span>Search</span>
+                  <input type="search" id="searchInput" placeholder="Order, buyer code, buyer name, appointment ID, location">
+                </label>
+                <button id="resetBoardFiltersButton" type="button" class="ghost-btn">Reset Board Filters</button>
+                <button id="exportBoardButton" type="button" class="ghost-btn">Export Board CSV</button>
+              </div>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Appointment Date</th>
+                  <th>Age</th>
+                  <th>Buyer Code</th>
+                  <th>Buyer Name</th>
+                  <th>Order Number</th>
+                  <th>Order Status</th>
+                  <th>Location</th>
+                  <th>Appointment ID</th>
+                  <th>Max Qty</th>
+                  <th>Time Slot</th>
+                  <th>Status</th>
+                  <th>Picklist Number</th>
+                  <th>Picklist Qty</th>
+                  <th>Vehicle Number</th>
+                  <th>Boxes</th>
+                  <th>Last Updated By</th>
+                  <th>Last Updated At</th>
+                  <th>Dispatch Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="ordersTableBody">
+                <tr class="empty-state-row">
+                  <td colspan="19">No orders yet. Create the first dispatch record above.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="board-footer">
+            <div class="button-row utility-row">
+              <button id="previousPageButton" type="button" class="ghost-btn">Previous</button>
+              <span id="paginationLabel" class="form-note">Page 1</span>
+              <button id="nextPageButton" type="button" class="ghost-btn">Next</button>
+            </div>
+            <label class="filter-box page-size-box">
+              <span>Rows Per Page</span>
+              <select id="pageSizeSelect">
+                <option value="25">25</option>
+                <option value="50" selected>50</option>
+                <option value="100">100</option>
+              </select>
+            </label>
+          </div>
+          <p id="boardMessage" class="form-note"></p>
+        </section>
+      </main>
+      </div>
+    </div>
+  </div>
+
+  <aside id="orderDetailsPanel" class="details-drawer app-hidden">
+    <div class="details-card">
+      <div class="mini-head">
+        <div>
+          <p class="section-tag">Order Details</p>
+          <h3 id="detailsOrderTitle">Dispatch Record</h3>
+        </div>
+        <button id="closeOrderDetailsButton" type="button" class="ghost-btn">Close</button>
+      </div>
+      <div id="orderDetailsContent" class="details-grid"></div>
+    </div>
+  </aside>
+
+  <div id="appToast" class="toast app-hidden"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
